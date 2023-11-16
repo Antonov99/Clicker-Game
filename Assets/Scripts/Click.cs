@@ -7,17 +7,18 @@ using Random = UnityEngine.Random;
 
 public class Click : MonoBehaviour
 {
+    private bool maxWeapon;
     [SerializeField] private Sprite[] Sprites;
     [SerializeField] private Image img;
-    private int weaponImgCounter;
-    private int costUpMoney;
-    private int costUpWeapon;
+    private uint weaponImgCounter;
+    private uint costUpMoney;
+    private uint costUpWeapon;
     private int infection;
-    private int days;
-    private int power;
-    private int miningSpeed;
-    private int money;
-    private long counter;
+    private uint days;
+    private uint power;
+    private uint miningSpeed;
+    private uint money;
+    private ulong counter;
     private long zombies;
     private long people;
     public Text Tdays;
@@ -27,11 +28,10 @@ public class Click : MonoBehaviour
     public Text T_alive_p_counter;
     public Text T_costUpMoney;
     public Text T_costUpWeapon;
+    public Text T_maxWeapon;
 
     void Start()
     {
-        infection = Random.Range(1000, 10000);
-
         if (File.Exists(Application.persistentDataPath + "/MySaveData.dat"))
         {
             BinaryFormatter bf = new BinaryFormatter();
@@ -48,6 +48,7 @@ public class Click : MonoBehaviour
             counter = data.savedCounter;
             zombies = data.savedZombies;
             people = data.savedPeople;
+            maxWeapon = data.savedMaxWeapon;
         }
         else
         {
@@ -55,12 +56,13 @@ public class Click : MonoBehaviour
             costUpMoney = 10;
             costUpWeapon = 10;
             money = 0;
-            miningSpeed = 1;
+            miningSpeed = 5;
             days = 0;
             power = 1;
             people = 7137583692;
             zombies = 742257351;
             counter = 0;
+            maxWeapon = false;
         }
 
         T_killed_z_counter.text = "Убито: " + counter;
@@ -71,6 +73,10 @@ public class Click : MonoBehaviour
         T_costUpMoney.text = costUpMoney.ToString() + " $";
         T_costUpWeapon.text = costUpWeapon.ToString() + " $";
         img.sprite = Sprites[weaponImgCounter];
+        if (maxWeapon)
+        {
+            T_maxWeapon.text = "Уничтожить 1млн зомби";
+        }
     }
 
     public void clck()
@@ -107,6 +113,7 @@ public class Click : MonoBehaviour
         data.savedCounter = counter;
         data.savedZombies = zombies;
         data.savedPeople = people;
+        data.savedMaxWeapon = maxWeapon;
         bf.Serialize(file, data);
         file.Close();
     }
@@ -121,7 +128,14 @@ public class Click : MonoBehaviour
 
     public void Days()
     {
-        infection = Random.Range(1000, 10000);
+        if (people > 1000000)
+        {
+            infection = (int)(people / 1000);
+        }
+        else
+        {
+            infection = Random.Range(1000,10000);
+        }
         people -= infection;
         zombies += infection;
         days++;
@@ -142,23 +156,34 @@ public class Click : MonoBehaviour
             ResetData();
             GetComponent<UImanager>().Loose();
         }
-
     }
 
     public void UpWeapon()
     {
-        if (money >= costUpWeapon)
+        if ((money >= costUpWeapon) && (weaponImgCounter < 6))
         {
-            power++;
+            power *= 3;
             money -= costUpWeapon;
-            costUpWeapon += 10;
-            T_costUpWeapon.text = costUpWeapon.ToString() + " $";
+            costUpWeapon *= 5;
+            
             Tmoney.text = "Заработано: " + money.ToString() + " $";
-            if (weaponImgCounter < 6)
+            weaponImgCounter++;
+            img.sprite = Sprites[weaponImgCounter];
+            if (weaponImgCounter == 6)
             {
-                weaponImgCounter++;
-                img.sprite = Sprites[weaponImgCounter];
+                costUpWeapon = 50000;
+                T_maxWeapon.text = "Уничтожить 1млн зомби";
             }
+            T_costUpWeapon.text = costUpWeapon.ToString() + " $";
+        }
+        else if ((money >= costUpWeapon) && (weaponImgCounter == 6))
+        {
+            money -= costUpWeapon;
+            zombies -= 1000000;
+            counter += 1000000;
+            Tmoney.text = "Заработано: " + money.ToString() + " $";
+            T_killed_z_counter.text = "Убито: " + counter;
+            T_alive_z_counter.text = "Зомби: " + zombies;
         }
     }
 
@@ -166,7 +191,7 @@ public class Click : MonoBehaviour
     {
         if (money >= costUpMoney)
         {
-            miningSpeed*=2;
+            miningSpeed += 5;
             money -= costUpMoney;
             costUpMoney += 10;
             T_costUpMoney.text = costUpMoney.ToString() + " $";
@@ -178,14 +203,15 @@ public class Click : MonoBehaviour
 [Serializable]
 class SaveData
 {
-    public int savedWeaponImgCounter;
-    public int savedCostUpMoney;
-    public int savedCostUpWeapon;
-    public int savedMoney;
-    public int savedMiningSpeed;
-    public int savedDays;
-    public int savedPower;
-    public long savedCounter;
+    public bool savedMaxWeapon;
+    public uint savedWeaponImgCounter;
+    public uint savedCostUpMoney;
+    public uint savedCostUpWeapon;
+    public uint savedMoney;
+    public uint savedMiningSpeed;
+    public uint savedDays;
+    public uint savedPower;
+    public ulong savedCounter;
     public long savedZombies;
     public long savedPeople;
 }

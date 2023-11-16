@@ -4,6 +4,12 @@ using UnityEngine.UI;
 
 public class UImanager : MonoBehaviour
 {
+    AudioSource aud;
+    public AudioClip knopka;
+    public bool sound;
+    public Image img;
+    public Sprite soundOn;
+    public Sprite soundOff;
     public GameObject panel;
     public GameObject ButtonPause;
     public GameObject ButtonClick;
@@ -12,9 +18,12 @@ public class UImanager : MonoBehaviour
     public GameObject ButtonMenu;
     public GameObject ButtonRestart;
     public Text T_Completed;
+    public GameObject T_Hint;
 
     void Start()
     {
+        aud = GetComponent<AudioSource>();
+        sound = true;
         T_Completed.text = "";
         ButtonPause.SetActive(true);
         ButtonClick.SetActive(true);
@@ -23,6 +32,11 @@ public class UImanager : MonoBehaviour
         ButtonMenu.SetActive(false);
         ButtonRestart.SetActive(false);
         Time.timeScale = 1f;
+        if (AudioListener.volume == 0f)
+        {
+            img.sprite = soundOff;
+            sound = false;
+        }
     }
 
     public void Win()
@@ -86,4 +100,26 @@ public class UImanager : MonoBehaviour
     {
         Application.Quit();
     }
+
+    public void Sound()
+    {
+        if (!sound)
+        {
+            img.sprite = soundOn;
+            AudioListener.volume = 1f;
+            sound = true;
+        }
+        else
+        {
+            img.sprite = soundOff;
+            AudioListener.volume = 0f;
+            sound = false;
+        }
+    }
+
+    public void Hint()
+    {
+        T_Hint.SetActive(true);
+    }
+
 }
